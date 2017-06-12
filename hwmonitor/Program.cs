@@ -1,15 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
+using System.Threading;
 
-namespace hwmonitor
+
+class Program
 {
-    class Program
+    /* time between we fetch new hardware reports, in miliseconds */
+    const int ReportRate = 5000;
+
+    static void Init()
     {
-        static void Main(string[] args)
+        M4ATX.Init();
+        Motherboard.Init();
+    }
+
+    static void Main(string[] args)
+    {
+        Init();
+
+        while (true)
         {
+            var report = M4ATX.GetReport() + "\n" +
+                         Motherboard.GetReport();
+            Console.WriteLine(report);
+            Thread.Sleep(ReportRate);
         }
     }
 }
