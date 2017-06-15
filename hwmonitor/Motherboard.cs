@@ -1,12 +1,26 @@
-using System;
 using OpenHardwareMonitor.Hardware;
-using System.IO;
-using System.Globalization;
-using System.Collections;
+using System.Collections.Generic;
 
 class Motherboard
 {
+    /*
+     * Sensor IDs we want to log, and how they map to Record's DataPoint type
+     */
+    static Dictionary<Identifier, Record.DataPoint> IDMap = new Dictionary<Identifier, Record.DataPoint>
+    {
+        { new Identifier("intelcpu", "0", "temperature", "0"), Record.DataPoint.CPUCore0Temperature },
+        { new Identifier("intelcpu", "0", "temperature", "1"), Record.DataPoint.CPUCore1Temperature },
+        { new Identifier("intelcpu", "0", "temperature", "2"), Record.DataPoint.CPUCore2Temperature },
+        { new Identifier("intelcpu", "0", "temperature", "3"), Record.DataPoint.CPUCore3Temperature },
+        { new Identifier("intelcpu", "0", "temperature", "4"), Record.DataPoint.CPUPackageTemperature },
+        { new Identifier("nvidiagpu", "0", "temperature", "0"), Record.DataPoint.GPUCoreTemperature },
+        { new Identifier("intelcpu", "0", "power", "0"), Record.DataPoint.CPUPackagePower },
+        { new Identifier("intelcpu", "0", "power", "1"), Record.DataPoint.CPUCoresPower },
+        { new Identifier("intelcpu", "0", "power", "3"), Record.DataPoint.CPUDRAMPower },
+    };
+
     public static Computer computer = new Computer();
+
     public static void Init()
     {
         computer.Open();
@@ -14,45 +28,21 @@ class Motherboard
         computer.GPUEnabled = true;
     }
 
-    public static string GetReport()
+    public static void Update(Record Record)
     {
-        ArrayList list = new ArrayList()
+        foreach (var hardware in computer.Hardware)
         {
-            "/intelcpu/0/temperature/0",
-            "/intelcpu/0/temperature/1",
-            "/intelcpu/0/temperature/2",
-            "/intelcpu/0/temperature/3",
-            "/intelcpu/0/temperature/4",
-            "/intelcpu/0/power/0",
-            "/intelcpu/0/power/1",
-            "/intelcpu/0/power/2",
-            "/intelcpu/0/power/3",
-            "/nvidiagpu/0/temperature/0"
-        };
+            hardware.Update();
 
-        string s_identifier;
-
-        using (StringWriter w = new StringWriter(CultureInfo.InvariantCulture))
-        {
-            foreach (var hardware in computer.Hardware)
+            foreach (var sensor in hardware.Sensors)
             {
-                hardware.Update();
-                w.WriteLine();
-                w.WriteLine("Hardware name : " + hardware.Name);
-
-                foreach (var sensor in hardware.Sensors)
+                if (!IDMap.ContainsKey(sensor.Identifier))
                 {
-                    s_identifier = Convert.ToString(sensor.Identifier);
-                    if (list.Contains(s_identifier))
-                    {
-                        w.WriteLine("Sensor name : " + sensor.Name +
-                                    " Sensor type : " + sensor.SensorType +
-                                    " Sensor value : " + sensor.Value);
-                    }
+                    /* we are not interested in this sensor */
+                    continue;
                 }
+                Record.Set(IDMap[sensor.Identifier], sensor.Value);
             }
-
-            return w.ToString();
         }
     }
 }

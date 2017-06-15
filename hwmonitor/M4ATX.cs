@@ -57,15 +57,14 @@ class M4ATX
         }
     }
 
-    public static string GetReport()
+    public static void Update(Record Record)
     {
 
         if (MyUsbDevice == null)
         {
-            return "M4ATX PSU device not found";
+            throw new Exception("M4ATX PSU device not found");
         }
 
-        string str = null;
         UsbEndpointWriter writer = MyUsbDevice.OpenEndpointWriter(WriteEndpointID.Ep01);
 
         // write data, read data
@@ -73,11 +72,10 @@ class M4ATX
 
         // specify data to send
         ec = writer.Write(new byte[] { 0x81, 0x00 }, 5000, out bytesWritten);
-        Console.WriteLine("\r\nDone!\r\n");
 
         if (ec != ErrorCode.None)
         {
-            return "Bytes Write fail";
+            throw new Exception("Bytes Write fail");
         }
 
         // open read endpoint 1.
@@ -89,17 +87,10 @@ class M4ATX
 
         if (bytesRead == 0)
         {
-            return "IoTimeOut Error";
+            throw new Exception("IoTimeOut Error");
         }
 
-        str = string.Format("temperature {0}\n,Voltage on 12V rail {1}\n,Voltage on 3.3V{2}\n,Voltage on 5V rail{3}\n,Input voltage{4}\n,Ignition voltage{5}\n",
-            readBuffer[12].ToString(),
-            readBuffer[6].ToString(),
-            readBuffer[4].ToString(),
-            readBuffer[5].ToString(),
-            readBuffer[2].ToString(),
-            readBuffer[3].ToString());
-        return str;
+        Record.Set(Record.DataPoint.M4ATXTemperature, readBuffer[12]);
+        Record.Set(Record.DataPoint.M4ATXVoltageIn, readBuffer[2]);
     }
-
 }
