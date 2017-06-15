@@ -3,6 +3,11 @@ using LibUsbDotNet;
 using LibUsbDotNet.Main;
 
 
+public class M4ATXDeviceNotFound : Exception
+{
+    public M4ATXDeviceNotFound() : base("M4ATX device not found") { }
+}
+
 class M4ATX
 {
     public static readonly int VendorID = 0x04d8;
@@ -37,8 +42,7 @@ class M4ATX
 
         if (MyUsbDevice == null)
         {
-            Console.WriteLine("M4ATX PSU device not found");
-            return;
+            throw new M4ATXDeviceNotFound();
         }
 
         IUsbDevice wholeUsbDevice = MyUsbDevice as IUsbDevice;
@@ -59,23 +63,20 @@ class M4ATX
 
     public static void Update(Record Record)
     {
-
         if (MyUsbDevice == null)
         {
-            throw new Exception("M4ATX PSU device not found");
+            /* we failed to connect to M4ATX device, nothing to do here */
+            return;
         }
 
         UsbEndpointWriter writer = MyUsbDevice.OpenEndpointWriter(WriteEndpointID.Ep01);
-
-        // write data, read data
-        //int bytesWritten;
 
         // specify data to send
         ec = writer.Write(new byte[] { 0x81, 0x00 }, 5000, out bytesWritten);
 
         if (ec != ErrorCode.None)
         {
-            throw new Exception("Bytes Write fail");
+            throw new Exception("M4ATX: Error sending command: " + ec);
         }
 
         // open read endpoint 1.
@@ -83,11 +84,13 @@ class M4ATX
 
         // If the device hasn't sent data in the last 5 seconds,
         // a timeout error (ec = IoTimedOut) will occur.
-        ec= reader.Read(readBuffer, 3000, out bytesRead);
+        reader.Read(readBuffer, 3000, out bytesRead);
 
-        if (bytesRead == 0)
+        if (ec != ErrorCode.None || bytesRead != readBuffer.Length)
         {
-            throw new Exception("IoTimeOut Error");
+            var msg = string.Format("M4ATX: Error reading result, error {0}, got {1} bytes",
+                 ec, bytesRead);
+            throw new Exception(msg);
         }
 
         Record.Set(Record.DataPoint.M4ATXTemperature, readBuffer[12]);

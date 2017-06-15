@@ -36,46 +36,84 @@ class Program
         ReportStream.Flush();
     }
 
+    static void LogException(Exception e)
+    {
+        WriteLine(e.ToString());
+    }
+
     static void Init()
     {
         OpenReportStream();
-        M4ATX.Init();
+        try
+        {
+            M4ATX.Init();
+        }
+        catch (Exception e)
+        {
+            /*
+             * the M4ATX USB interface is a bit unstable,
+             * handle the case we can't connect to it
+             * by logging an error and continuing without it
+             */
+            LogException(e);
+        }
         Motherboard.Init();
+    }
+
+    static void FetchAndLogRecord(Record record)
+    {
+        string line;
+        try
+        {
+            M4ATX.Update(record);
+        }
+        catch (Exception e)
+        {
+            LogException(e);
+        }
+
+        Motherboard.Update(record);
+
+        line = string.Format(
+"{0} |     {1}\x00B0     |    {2}\x00B0    {3}\x00B0    {4}\x00B0    {5}\x00B0    {6}\x00B0    |     {7}\x00B0     |    {8,4:#0.0}W    {9,4:#0.0}W    {10,4:#0.0}W    |   {11:#0.0}V",
+
+            DateTime.UtcNow,
+            record.Get(Record.DataPoint.M4ATXTemperature),
+
+            record.Get(Record.DataPoint.CPUPackageTemperature),
+            record.Get(Record.DataPoint.CPUCore0Temperature),
+            record.Get(Record.DataPoint.CPUCore1Temperature),
+            record.Get(Record.DataPoint.CPUCore2Temperature),
+            record.Get(Record.DataPoint.CPUCore3Temperature),
+
+            record.Get(Record.DataPoint.GPUCoreTemperature),
+
+            record.Get(Record.DataPoint.CPUPackagePower),
+            record.Get(Record.DataPoint.CPUCoresPower),
+            record.Get(Record.DataPoint.CPUDRAMPower),
+            record.Get(Record.DataPoint.M4ATXVoltageIn)
+            );
+
+        WriteLine(line);
+
     }
 
     static void Main(string[] args)
     {
         Init();
 
-        string line;
+        /* reuse same record object to save a bit on GC */
         Record record = new Record();
-
         while (true)
         {
-            M4ATX.Update(record);
-            Motherboard.Update(record);
-
-            line = string.Format(
-"{0} |     {1}\x00B0     |    {2}\x00B0    {3}\x00B0    {4}\x00B0    {5}\x00B0    {6}\x00B0    |     {7}\x00B0     |    {8,4:#0.0}W    {9,4:#0.0}W    {10,4:#0.0}W    |   {11:#0.0}V",
-
-                DateTime.UtcNow,
-                record.Get(Record.DataPoint.M4ATXTemperature),
-
-                record.Get(Record.DataPoint.CPUPackageTemperature),
-                record.Get(Record.DataPoint.CPUCore0Temperature),
-                record.Get(Record.DataPoint.CPUCore1Temperature),
-                record.Get(Record.DataPoint.CPUCore2Temperature),
-                record.Get(Record.DataPoint.CPUCore3Temperature),
-
-                record.Get(Record.DataPoint.GPUCoreTemperature),
-
-                record.Get(Record.DataPoint.CPUPackagePower),
-                record.Get(Record.DataPoint.CPUCoresPower),
-                record.Get(Record.DataPoint.CPUDRAMPower),
-                record.Get(Record.DataPoint.M4ATXVoltageIn)
-                );
-
-            WriteLine(line);
+            try
+            {
+                FetchAndLogRecord(record);
+            }
+            catch (Exception e)
+            {
+                LogException(e);
+            }
             Thread.Sleep(ReportRate);
         }
     }
