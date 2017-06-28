@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 
@@ -95,6 +96,7 @@ class Program
     static void Init()
     {
         OpenReportStream();
+
         try
         {
             M4ATX.Init();
@@ -149,9 +151,31 @@ class Program
 
     }
 
+    static void StartMSIAfterburner()
+    {
+        try
+        {
+            var psi = new ProcessStartInfo(@"C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe");
+            psi.UseShellExecute = false;
+            Process.Start(psi);
+
+        }
+        catch (Exception e)
+        {
+            LogException(e);
+        }
+    }
+
+
     static void Main(string[] args)
     {
         Init();
+
+        /*
+         * a hack to start MSI afterburner becouse we can't figure out how to do it
+         * with windows task scheduler
+         */
+        StartMSIAfterburner();
 
         /* reuse same record object to save a bit on GC */
         Record record = new Record();
