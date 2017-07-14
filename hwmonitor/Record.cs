@@ -7,6 +7,9 @@ public class Record
     {
         M4ATXTemperature = 0,
         M4ATXVoltageIn,
+        M4ATXVoltageOn12V,
+        M4ATXVoltageOn3V,
+        M4ATXVoltageOn5V,
         CPUCore0Temperature,
         CPUCore1Temperature,
         CPUCore2Temperature,

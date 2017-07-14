@@ -71,11 +71,10 @@ class Program
         ReportStream = new StreamWriter(path, true);
 
         WriteLine(
-        "--------------------+-------------+---------------------------------------+-------------+-------------------------------+------------" + Environment.NewLine +
-        "     Timestamp      |  M4ATX PSU  |           CPU Temperature             |     GPU     |           CPU Power           |  M4ATX PSU" + Environment.NewLine +
-        "  (UTC time zone)   | temperature |   PKG   Core0  Core1  Core02  Core03  | temperature |     PKG    Cores     DRAM     | Voltage IN" + Environment.NewLine +
-        "--------------------+-------------+---------------------------------------+-------------+-------------------------------+------------"
-                  );
+        "--------------------+-------------+---------------------------------------+-------------+-------------------------------+--------------------------------------" + Environment.NewLine +
+        "     Timestamp      |  M4ATX PSU  |           CPU Temperature             |     GPU     |           CPU Power           |            M4ATX PSU Voltage         " + Environment.NewLine +
+        "  (UTC time zone)   | temperature |   PKG   Core0  Core1  Core02  Core03  | temperature |     PKG    Cores     DRAM     |    In       12V      3V        5V" + Environment.NewLine +
+        "--------------------+-------------+---------------------------------------+-------------+-------------------------------+--------------------------------------");
     }
 
     static void WriteLine(string line)
@@ -128,7 +127,10 @@ class Program
         Motherboard.Update(record);
 
         line = string.Format(
-"{0} |     {1}\x00B0     |    {2}\x00B0    {3}\x00B0    {4}\x00B0    {5}\x00B0    {6}\x00B0    |     {7}\x00B0     |    {8,4:#0.0}W    {9,4:#0.0}W    {10,4:#0.0}W    |   {11:#0.0}V",
+            "{0} |     {1}\x00B0     |    {2}\x00B0    {3}\x00B0    {4}\x00B0    {5}\x00B0    {6}\x00B0    |" +
+            "     {7}\x00B0     |    {8,4:#0.0}W    {9,4:#0.0}W    {10,4:#0.0}W    |" +
+            "   {11,4:#0.0}V    {12,4:#0.0}V    {13,4:#0.0}V    {14,4:#0.0}V",
+
 
             DateTime.UtcNow,
             record.Get(Record.DataPoint.M4ATXTemperature),
@@ -144,7 +146,11 @@ class Program
             record.Get(Record.DataPoint.CPUPackagePower),
             record.Get(Record.DataPoint.CPUCoresPower),
             record.Get(Record.DataPoint.CPUDRAMPower),
-            record.Get(Record.DataPoint.M4ATXVoltageIn)
+
+            record.Get(Record.DataPoint.M4ATXVoltageIn),
+            record.Get(Record.DataPoint.M4ATXVoltageOn12V),
+            record.Get(Record.DataPoint.M4ATXVoltageOn3V),
+            record.Get(Record.DataPoint.M4ATXVoltageOn5V)
             );
 
         WriteLine(line);

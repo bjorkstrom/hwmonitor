@@ -93,7 +93,10 @@ class M4ATX
             throw new Exception(msg);
         }
 
-        Record.Set(Record.DataPoint.M4ATXTemperature, readBuffer[12]);
-        Record.Set(Record.DataPoint.M4ATXVoltageIn, readBuffer[2]);
+        Record.Set(Record.DataPoint.M4ATXTemperature, (float)readBuffer[12]);
+        Record.Set(Record.DataPoint.M4ATXVoltageIn,(float) (readBuffer[2] * 0.1552));
+        Record.Set(Record.DataPoint.M4ATXVoltageOn12V, (float)(readBuffer[6] * 0.1165));
+        Record.Set(Record.DataPoint.M4ATXVoltageOn3V, (float)(readBuffer[4] * 0.0195));
+        Record.Set(Record.DataPoint.M4ATXVoltageOn5V, (float)(readBuffer[5] * 0.0389));
     }
 }
