@@ -12,7 +12,6 @@ class M4ATX
 {
     public static readonly int VendorID = 0x04d8;
     public static readonly int ProductID = 0xd001;
-    public static UsbDeviceFinder MyUsbFinder = new UsbDeviceFinder(VendorID, ProductID);
     public static int bytesWritten;
     public static UsbDevice MyUsbDevice;
     public static byte[] readBuffer = new byte[24];
@@ -20,8 +19,18 @@ class M4ATX
     public static int bytesRead;
     public static void Init()
     {
-        // Find M4ATX PSU Device
+        /*
+         * Find M4ATX PSU Device
+         */
+        //UsbDeviceFinder MyUsbFinder = new UsbDeviceFinder(VendorID, ProductID & 0xffff);
         //MyUsbDevice = UsbDevice.OpenUsbDevice(MyUsbFinder); /* Does not work for whatever reason */
+
+        if (MyUsbDevice != null && MyUsbDevice.IsOpen)
+        {
+            MyUsbDevice.Close();
+        }
+
+        bool DeviceFound = false;
 
         /* Iterate over USB devices until we find the M4ATX device */
         UsbRegDeviceList allDevices = UsbDevice.AllDevices;
@@ -29,18 +38,18 @@ class M4ATX
         {
             if (usbRegistry.Open(out MyUsbDevice))
             {
-                var vid = MyUsbDevice.Info.Descriptor.VendorID;
-                var pid = MyUsbDevice.Info.Descriptor.ProductID;
                 if (MyUsbDevice.Info.Descriptor.VendorID == VendorID &&
-                    MyUsbDevice.Info.Descriptor.ProductID == ProductID)
+                    /* not sure why we must mask out higher bits, TODO investigate */
+                    (MyUsbDevice.Info.Descriptor.ProductID & 0xffff) == ProductID)
                 {
                     /* bingo */
+                    DeviceFound = true;
                     break;
                 }
             }
         }
 
-        if (MyUsbDevice == null)
+        if (!DeviceFound)
         {
             throw new M4ATXDeviceNotFound();
         }
