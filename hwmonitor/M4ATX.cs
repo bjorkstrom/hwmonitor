@@ -8,6 +8,12 @@ public class M4ATXDeviceNotFound : Exception
     public M4ATXDeviceNotFound() : base("M4ATX device not found") { }
 }
 
+public class M4ATXReadError : Exception
+{
+    public M4ATXReadError(ErrorCode err) : base("Error reading from USB: " + err) { }
+}
+
+
 class M4ATX
 {
     public static readonly int VendorID = 0x04d8;
@@ -72,27 +78,44 @@ class M4ATX
 
     public static void Update(Record Record)
     {
+        /*
+         * reset M4ATX values, in case we fail to read new values,
+         * so we don't log old values
+         */
+        Record.Set(Record.DataPoint.M4ATXTemperature, null);
+        Record.Set(Record.DataPoint.M4ATXVoltageIn, null);
+        Record.Set(Record.DataPoint.M4ATXVoltageOn12V, null);
+        Record.Set(Record.DataPoint.M4ATXVoltageOn3V, null);
+        Record.Set(Record.DataPoint.M4ATXVoltageOn5V, null);
+
+        /*
+         * If we lost connection to the device in last
+         * update cycle, try to reconnect
+         */
         if (MyUsbDevice == null)
         {
-            /* we failed to connect to M4ATX device, nothing to do here */
-            return;
+            Init();
         }
 
         UsbEndpointWriter writer = MyUsbDevice.OpenEndpointWriter(WriteEndpointID.Ep01);
 
-        // specify data to send
+        /* specify data to send */
         ec = writer.Write(new byte[] { 0x81, 0x00 }, 5000, out bytesWritten);
 
         if (ec != ErrorCode.None)
         {
-            throw new Exception("M4ATX: Error sending command: " + ec);
+            /* try to reconnect on next update cycle */
+            MyUsbDevice = null;
+            throw new M4ATXReadError(ec);
         }
 
-        // open read endpoint 1.
+        /* open read endpoint 1 */
         UsbEndpointReader reader = MyUsbDevice.OpenEndpointReader(ReadEndpointID.Ep01);
 
-        // If the device hasn't sent data in the last 5 seconds,
-        // a timeout error (ec = IoTimedOut) will occur.
+        /*
+         * If the device hasn't sent data in the last 5 seconds
+         * a timeout error (ec = IoTimedOut) will occur
+         */
         reader.Read(readBuffer, 3000, out bytesRead);
 
         if (ec != ErrorCode.None || bytesRead != readBuffer.Length)
