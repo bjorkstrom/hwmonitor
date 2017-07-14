@@ -23,6 +23,7 @@ class Program
 
 
     static StreamWriter ReportStream;
+    static KinesisLog.Send SendToKinesis;
 
     /*
      * Make sure we don't generate infinite large report file
@@ -95,6 +96,7 @@ class Program
     static void Init()
     {
         OpenReportStream();
+        SendToKinesis = KinesisLog.Create();
 
         try
         {
@@ -125,6 +127,8 @@ class Program
         }
 
         Motherboard.Update(record);
+
+        SendToKinesis(record);
 
         line = string.Format(
             "{0} |     {1}\x00B0     |    {2}\x00B0    {3}\x00B0    {4}\x00B0    {5}\x00B0    {6}\x00B0    |" +

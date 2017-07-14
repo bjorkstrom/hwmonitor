@@ -37,6 +37,14 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AWSSDK.Core, Version=3.3.0.0, Culture=neutral, PublicKeyToken=885c28607f98e604, processorArchitecture=MSIL">
+      <HintPath>..\packages\AWSSDK.Core.3.3.17\lib\net45\AWSSDK.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="AWSSDK.Kinesis, Version=3.3.0.0, Culture=neutral, PublicKeyToken=885c28607f98e604, processorArchitecture=MSIL">
+      <HintPath>..\packages\AWSSDK.Kinesis.3.3.3\lib\net45\AWSSDK.Kinesis.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="LibUsbDotNet, Version=2.2.8.104, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\LibUsbDotNet.2.2.8\lib\LibUsbDotNet.dll</HintPath>
       <Private>True</Private>
@@ -55,6 +63,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CloudConfig.cs" />
+    <Compile Include="KinesisLog.cs" />
     <Compile Include="M4ATX.cs" />
     <Compile Include="Motherboard.cs" />
     <Compile Include="Program.cs" />
@@ -71,6 +81,9 @@
       <Project>{b0397530-545a-471d-bb74-027ae456df1a}</Project>
       <Name>OpenHardwareMonitorLib</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Analyzer Include="..\packages\AWSSDK.Kinesis.3.3.3\analyzers\dotnet\cs\AWSSDK.Kinesis.CodeAnalysis.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
