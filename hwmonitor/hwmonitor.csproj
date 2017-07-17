@@ -67,6 +67,7 @@
     <Compile Include="KinesisLog.cs" />
     <Compile Include="M4ATX.cs" />
     <Compile Include="Motherboard.cs" />
+    <Compile Include="nVidiaGPU.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Record.cs" />
