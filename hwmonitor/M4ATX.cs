@@ -21,6 +21,7 @@ class M4ATX
     public static int bytesWritten;
     public static UsbDevice MyUsbDevice;
     public static byte[] readBuffer = new byte[24];
+    public static byte[] command = new byte[] { 0x81, 0x00 };
     public static ErrorCode ec = ErrorCode.None;
     public static int bytesRead;
     public static void Init()
@@ -100,7 +101,7 @@ class M4ATX
         UsbEndpointWriter writer = MyUsbDevice.OpenEndpointWriter(WriteEndpointID.Ep01);
 
         /* specify data to send */
-        ec = writer.Write(new byte[] { 0x81, 0x00 }, 5000, out bytesWritten);
+        ec = writer.Write(command, 5000, out bytesWritten);
 
         if (ec != ErrorCode.None)
         {
