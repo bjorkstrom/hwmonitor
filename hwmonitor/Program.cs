@@ -98,19 +98,7 @@ class Program
         OpenReportStream();
         SendToKinesis = KinesisLog.Create();
 
-        try
-        {
-            M4ATX.Init();
-        }
-        catch (Exception e)
-        {
-            /*
-             * the M4ATX USB interface is a bit unstable,
-             * handle the case we can't connect to it
-             * by logging an error and continuing without it
-             */
-            LogException(e);
-        }
+        M4ATX.Init();
         Motherboard.Init();
         nVidiaGPU.Init();
     }
@@ -118,15 +106,8 @@ class Program
     static void FetchAndLogRecord(Record record)
     {
         string line;
-        try
-        {
-            M4ATX.Update(record);
-        }
-        catch (Exception e)
-        {
-            LogException(e);
-        }
 
+        M4ATX.Update(record);
         Motherboard.Update(record);
         nVidiaGPU.Update(record);
 

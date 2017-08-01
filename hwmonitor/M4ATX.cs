@@ -2,134 +2,168 @@ using System;
 using LibUsbDotNet;
 using LibUsbDotNet.Main;
 
-
-public class M4ATXDeviceNotFound : Exception
+public class M4ATXException : Exception
 {
-    public M4ATXDeviceNotFound() : base("M4ATX device not found") { }
+    public M4ATXException(string message) : base(message) { }
 }
 
-public class M4ATXReadError : Exception
+class M4ATXDevice
 {
-    public M4ATXReadError(ErrorCode err) : base("Error reading from USB: " + err) { }
-}
+    const int TIMEOUT = 500;
+    const int VENDOR_ID = 0x04d8;
+    const int PRODUCT_ID = 53249; //0xd001;
 
+    static byte[] GetDiagnosticsCommand = new byte[] { 0x81, 0x00 };
 
-class M4ATX
-{
-    public static readonly int VendorID = 0x04d8;
-    public static readonly int ProductID = 0xd001;
-    public static int bytesWritten;
-    public static UsbDevice MyUsbDevice;
-    public static byte[] readBuffer = new byte[24];
-    public static byte[] command = new byte[] { 0x81, 0x00 };
-    public static ErrorCode ec = ErrorCode.None;
-    public static int bytesRead;
-    public static void Init()
+    IUsbDevice UsbDev = null;
+    UsbEndpointWriter Writer;
+    UsbEndpointReader Reader;
+
+    byte[] ReadBuffer = new byte[24];
+
+    public float Temperature;
+    public float VoltageIn;
+    public float VoltageOn12V;
+    public float VoltageOn3V;
+    public float VoltageOn5V;
+
+    IUsbDevice FindDevice()
     {
-        /*
-         * Find M4ATX PSU Device
-         */
-        //UsbDeviceFinder MyUsbFinder = new UsbDeviceFinder(VendorID, ProductID & 0xffff);
-        //MyUsbDevice = UsbDevice.OpenUsbDevice(MyUsbFinder); /* Does not work for whatever reason */
-
-        if (MyUsbDevice != null && MyUsbDevice.IsOpen)
-        {
-            MyUsbDevice.Close();
-        }
-
-        bool DeviceFound = false;
-
         /* Iterate over USB devices until we find the M4ATX device */
-        UsbRegDeviceList allDevices = UsbDevice.AllDevices;
+        UsbRegDeviceList allDevices = UsbDevice.AllLibUsbDevices;
         foreach (UsbRegistry usbRegistry in allDevices)
         {
-            if (usbRegistry.Open(out MyUsbDevice))
+            if (usbRegistry.Vid == VENDOR_ID & usbRegistry.Pid == PRODUCT_ID)
             {
-                if (MyUsbDevice.Info.Descriptor.VendorID == VendorID &&
-                    /* not sure why we must mask out higher bits, TODO investigate */
-                    (MyUsbDevice.Info.Descriptor.ProductID & 0xffff) == ProductID)
-                {
-                    /* bingo */
-                    DeviceFound = true;
-                    break;
-                }
+                return (IUsbDevice)usbRegistry.Device;
             }
         }
 
-        if (!DeviceFound)
+        throw new M4ATXException("M4ATX USB device not found");
+    }
+
+    void Setup()
+    {
+        if (UsbDev != null)
         {
-            throw new M4ATXDeviceNotFound();
+            return;
         }
 
-        IUsbDevice wholeUsbDevice = MyUsbDevice as IUsbDevice;
-        if (!ReferenceEquals(wholeUsbDevice, null))
+        UsbDev = FindDevice();
+
+        if (!UsbDev.SetConfiguration(1))
         {
+            throw new M4ATXException("Failed to set device config");
+        }
+
+        if (!UsbDev.ClaimInterface(0))
+        {
+            throw new M4ATXException("Failed to claim interface #0");
+        }
+
+        if (!UsbDev.SetAltInterface(0))
+        {
+            throw new M4ATXException("Failed to set alternate interface to 0");
+        }
+
+        Writer = UsbDev.OpenEndpointWriter(WriteEndpointID.Ep01);
+        Reader = UsbDev.OpenEndpointReader(ReadEndpointID.Ep01);
+    }
+
+    void Reset()
+    {
+        if (UsbDev == null)
+        {
+            /* USB device not initilized, nothing to reset */
+            return;
+        }
+
+        Console.WriteLine("Resetting device");
+        UsbDev.ResetDevice();
+        UsbDev = null;
+    }
+
+    ///
+    /// <returns>
+    ///   true if successfully updated values,
+    ///   false on error and there are no new values
+    /// </returns>
+    ///
+    public bool UpdateState()
+    {
+        try
+        {
+            Setup();
+
+            int count;
+            var ec = Writer.Write(GetDiagnosticsCommand, TIMEOUT, out count);
+            if (ec != ErrorCode.None)
+            {
+                throw new M4ATXException("Write failed");
+            }
+
+            ec = Reader.Read(ReadBuffer, TIMEOUT, out count);
+            if (ec != ErrorCode.None)
+            {
+                throw new M4ATXException("Read failed");
+            }
+
+            /* store temperature value */
+            Temperature = ReadBuffer[12];
+
             /*
-             * This is a "whole" USB device. Before it can be used,
-             * the desired configuration and interface must be selected.
+             * M4ATX reports voltage values in custom scales,
+             * in order to utilize express as mush presision
+             * as possible with 8-bit values.
+             *
+             * Apply rescale factors to convert to regular scale.
              */
+            VoltageIn = (float)(ReadBuffer[2] * 0.1552);
+            VoltageOn3V = (float)(ReadBuffer[4] * 0.0195);
+            VoltageOn5V = (float)(ReadBuffer[5] * 0.0389);
+            VoltageOn12V = (float)(ReadBuffer[6] * 0.1165);
 
-            /* Select config #1 */
-            wholeUsbDevice.SetConfiguration(1);
+            return true;
 
-            /* Claim interface #0 */
-            wholeUsbDevice.ClaimInterface(1);
         }
+        catch (M4ATXException e)
+        {
+            Console.WriteLine("Error: " + e);
+            Reset();
+        }
+
+        return false;
+    }
+}
+
+public class M4ATX
+{
+    static M4ATXDevice M4Device;
+    public static byte[] readBuffer = new byte[24];
+
+    public static void Init()
+    {
+        M4Device = new M4ATXDevice();
     }
 
     public static void Update(Record Record)
     {
-        /*
-         * reset M4ATX values, in case we fail to read new values,
-         * so we don't log old values
-         */
-        Record.Set(Record.DataPoint.M4ATXTemperature, null);
-        Record.Set(Record.DataPoint.M4ATXVoltageIn, null);
-        Record.Set(Record.DataPoint.M4ATXVoltageOn12V, null);
-        Record.Set(Record.DataPoint.M4ATXVoltageOn3V, null);
-        Record.Set(Record.DataPoint.M4ATXVoltageOn5V, null);
-
-        /*
-         * If we lost connection to the device in last
-         * update cycle, try to reconnect
-         */
-        if (MyUsbDevice == null)
+        if (!M4Device.UpdateState())
         {
-            Init();
+            /* error, no M4ATX values this update cycle */
+            Record.Set(Record.DataPoint.M4ATXTemperature, null);
+            Record.Set(Record.DataPoint.M4ATXVoltageIn, null);
+            Record.Set(Record.DataPoint.M4ATXVoltageOn12V, null);
+            Record.Set(Record.DataPoint.M4ATXVoltageOn3V, null);
+            Record.Set(Record.DataPoint.M4ATXVoltageOn5V, null);
+
+            return;
         }
 
-        UsbEndpointWriter writer = MyUsbDevice.OpenEndpointWriter(WriteEndpointID.Ep01);
-
-        /* specify data to send */
-        ec = writer.Write(command, 5000, out bytesWritten);
-
-        if (ec != ErrorCode.None)
-        {
-            /* try to reconnect on next update cycle */
-            MyUsbDevice = null;
-            throw new M4ATXReadError(ec);
-        }
-
-        /* open read endpoint 1 */
-        UsbEndpointReader reader = MyUsbDevice.OpenEndpointReader(ReadEndpointID.Ep01);
-
-        /*
-         * If the device hasn't sent data in the last 5 seconds
-         * a timeout error (ec = IoTimedOut) will occur
-         */
-        reader.Read(readBuffer, 3000, out bytesRead);
-
-        if (ec != ErrorCode.None || bytesRead != readBuffer.Length)
-        {
-            var msg = string.Format("M4ATX: Error reading result, error {0}, got {1} bytes",
-                 ec, bytesRead);
-            throw new Exception(msg);
-        }
-
-        Record.Set(Record.DataPoint.M4ATXTemperature, (float)readBuffer[12]);
-        Record.Set(Record.DataPoint.M4ATXVoltageIn,(float) (readBuffer[2] * 0.1552));
-        Record.Set(Record.DataPoint.M4ATXVoltageOn12V, (float)(readBuffer[6] * 0.1165));
-        Record.Set(Record.DataPoint.M4ATXVoltageOn3V, (float)(readBuffer[4] * 0.0195));
-        Record.Set(Record.DataPoint.M4ATXVoltageOn5V, (float)(readBuffer[5] * 0.0389));
+        Record.Set(Record.DataPoint.M4ATXTemperature, M4Device.Temperature);
+        Record.Set(Record.DataPoint.M4ATXVoltageIn, M4Device.VoltageIn);
+        Record.Set(Record.DataPoint.M4ATXVoltageOn12V, M4Device.VoltageOn12V);
+        Record.Set(Record.DataPoint.M4ATXVoltageOn3V, M4Device.VoltageOn3V);
+        Record.Set(Record.DataPoint.M4ATXVoltageOn5V, M4Device.VoltageOn5V);
     }
 }
