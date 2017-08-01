@@ -65,6 +65,7 @@
   <ItemGroup>
     <Compile Include="CloudConfig.cs" />
     <Compile Include="KinesisLog.cs" />
+    <Compile Include="Log.cs" />
     <Compile Include="M4ATX.cs" />
     <Compile Include="Motherboard.cs" />
     <Compile Include="nVidiaGPU.cs" />

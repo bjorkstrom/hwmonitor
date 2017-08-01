@@ -78,7 +78,7 @@ class M4ATXDevice
             return;
         }
 
-        Console.WriteLine("Resetting device");
+        Log.WriteLine("Resetting M4ATX device");
         UsbDev.ResetDevice();
         UsbDev = null;
     }
@@ -128,7 +128,7 @@ class M4ATXDevice
         }
         catch (M4ATXException e)
         {
-            Console.WriteLine("Error: " + e);
+            Log.Exception(e);
             Reset();
         }
 
