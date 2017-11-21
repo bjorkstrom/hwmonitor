@@ -1,6 +1,9 @@
 using System;
 using System.Diagnostics;
+using System.Collections.Generic;
 using System.Threading;
+using System.Linq;
+using hwmonitor;
 
 class Program
 {
@@ -36,29 +39,47 @@ class Program
 
 
             DateTime.UtcNow,
-            record.Get(Record.DataPoint.M4ATXTemperature),
-
-            record.Get(Record.DataPoint.CPUPackageTemperature),
-            record.Get(Record.DataPoint.CPUCore0Temperature),
-            record.Get(Record.DataPoint.CPUCore1Temperature),
-            record.Get(Record.DataPoint.CPUCore2Temperature),
-            record.Get(Record.DataPoint.CPUCore3Temperature),
-
-            record.Get(Record.DataPoint.GPUCoreTemperature),
-
-            record.Get(Record.DataPoint.CPUPackagePower),
-            record.Get(Record.DataPoint.CPUCoresPower),
-            record.Get(Record.DataPoint.CPUDRAMPower),
-
-            record.Get(Record.DataPoint.GPUPower),
-
-            record.Get(Record.DataPoint.M4ATXVoltageIn),
-            record.Get(Record.DataPoint.M4ATXVoltageOn12V),
-            record.Get(Record.DataPoint.M4ATXVoltageOn3V),
-            record.Get(Record.DataPoint.M4ATXVoltageOn5V)
+           
+            record[(int)DataPoint.M4ATXTemperature],
+            record[(int)DataPoint.CPUPackageTemperature],
+            record[(int)DataPoint.CPUCore0Temperature],
+            record[(int)DataPoint.CPUCore1Temperature],
+            record[(int)DataPoint.CPUCore2Temperature],
+            record[(int)DataPoint.CPUCore3Temperature],
+            record[(int)DataPoint.GPUCoreTemperature],
+            record[(int)DataPoint.CPUPackagePower],
+            record[(int)DataPoint.CPUCoresPower],
+            record[(int)DataPoint.CPUDRAMPower],
+            record[(int)DataPoint.GPUPower],
+            record[(int)DataPoint.M4ATXVoltageIn],
+            record[(int)DataPoint.M4ATXVoltageOn12V],
+            record[(int)DataPoint.M4ATXVoltageOn3V],
+            record[(int)DataPoint.M4ATXVoltageOn5V]
             );
-
+      
+        
         Log.WriteLine(line);
+
+        if (GlobalValues.NumtimesCheckedVolt != GlobalValues.numtimesForAverageVolt)
+        {
+            GlobalValues.Voltages[GlobalValues.NumtimesCheckedVolt] = (float)record[(int)DataPoint.M4ATXVoltageIn];
+            GlobalValues.NumtimesCheckedVolt++;
+        }
+        else
+        {
+            GlobalValues.AverageVolt = GlobalValues.Voltages.Sum() / GlobalValues.numtimesForAverageVolt;
+
+            if (GlobalValues.AverageVolt < GlobalValues.minVoltage)
+                try
+                {
+                    Process.Start("shutdown", "-s -t 30");
+                }
+                catch (Exception e)
+                {
+                    Log.Exception(e);
+                }
+            GlobalValues.NumtimesCheckedVolt = 0;
+        }
     }
 
     static void StartMSIAfterburner()

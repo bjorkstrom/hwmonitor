@@ -6,17 +6,17 @@ class Motherboard
     /*
      * Sensor IDs we want to log, and how they map to Record's DataPoint type
      */
-    static Dictionary<Identifier, Record.DataPoint> IDMap = new Dictionary<Identifier, Record.DataPoint>
+    static Dictionary<Identifier, DataPoint> IDMap = new Dictionary<Identifier, DataPoint>
     {
-        { new Identifier("intelcpu", "0", "temperature", "0"), Record.DataPoint.CPUCore0Temperature },
-        { new Identifier("intelcpu", "0", "temperature", "1"), Record.DataPoint.CPUCore1Temperature },
-        { new Identifier("intelcpu", "0", "temperature", "2"), Record.DataPoint.CPUCore2Temperature },
-        { new Identifier("intelcpu", "0", "temperature", "3"), Record.DataPoint.CPUCore3Temperature },
-        { new Identifier("intelcpu", "0", "temperature", "4"), Record.DataPoint.CPUPackageTemperature },
-        { new Identifier("nvidiagpu", "0", "temperature", "0"), Record.DataPoint.GPUCoreTemperature },
-        { new Identifier("intelcpu", "0", "power", "0"), Record.DataPoint.CPUPackagePower },
-        { new Identifier("intelcpu", "0", "power", "1"), Record.DataPoint.CPUCoresPower },
-        { new Identifier("intelcpu", "0", "power", "3"), Record.DataPoint.CPUDRAMPower },
+        { new Identifier("intelcpu", "0", "temperature", "0"), DataPoint.CPUCore0Temperature },     
+        { new Identifier("intelcpu", "0", "temperature", "1"), DataPoint.CPUCore1Temperature },
+        { new Identifier("intelcpu", "0", "temperature", "2"), DataPoint.CPUCore2Temperature },
+        { new Identifier("intelcpu", "0", "temperature", "3"), DataPoint.CPUCore3Temperature },
+        { new Identifier("intelcpu", "0", "temperature", "4"), DataPoint.CPUPackageTemperature },
+        { new Identifier("nvidiagpu", "0", "temperature", "0"), DataPoint.GPUCoreTemperature },
+        { new Identifier("intelcpu", "0", "power", "0"), DataPoint.CPUPackagePower },
+        { new Identifier("intelcpu", "0", "power", "1"), DataPoint.CPUCoresPower },
+        { new Identifier("intelcpu", "0", "power", "3"), DataPoint.CPUDRAMPower },
     };
 
     public static Computer computer = new Computer();
@@ -41,7 +41,7 @@ class Motherboard
                     /* we are not interested in this sensor */
                     continue;
                 }
-                Record.Set(IDMap[sensor.Identifier], sensor.Value);
+                Record[(int)IDMap[sensor.Identifier]] = sensor.Value;
             }
         }
     }

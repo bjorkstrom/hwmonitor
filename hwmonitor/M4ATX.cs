@@ -151,19 +151,20 @@ public class M4ATX
         if (!M4Device.UpdateState())
         {
             /* error, no M4ATX values this update cycle */
-            Record.Set(Record.DataPoint.M4ATXTemperature, null);
-            Record.Set(Record.DataPoint.M4ATXVoltageIn, null);
-            Record.Set(Record.DataPoint.M4ATXVoltageOn12V, null);
-            Record.Set(Record.DataPoint.M4ATXVoltageOn3V, null);
-            Record.Set(Record.DataPoint.M4ATXVoltageOn5V, null);
+
+            Record[(int)DataPoint.M4ATXTemperature] = null;
+            Record[(int)DataPoint.M4ATXVoltageIn] = null;
+            Record[(int)DataPoint.M4ATXVoltageOn12V] = null;
+            Record[(int)DataPoint.M4ATXVoltageOn3V] = null;
+            Record[(int)DataPoint.M4ATXVoltageOn5V] = null;
 
             return;
         }
 
-        Record.Set(Record.DataPoint.M4ATXTemperature, M4Device.Temperature);
-        Record.Set(Record.DataPoint.M4ATXVoltageIn, M4Device.VoltageIn);
-        Record.Set(Record.DataPoint.M4ATXVoltageOn12V, M4Device.VoltageOn12V);
-        Record.Set(Record.DataPoint.M4ATXVoltageOn3V, M4Device.VoltageOn3V);
-        Record.Set(Record.DataPoint.M4ATXVoltageOn5V, M4Device.VoltageOn5V);
+        Record[(int)DataPoint.M4ATXTemperature] = M4Device.Temperature;
+        Record[(int)DataPoint.M4ATXVoltageIn] = M4Device.VoltageIn;
+        Record[(int)DataPoint.M4ATXVoltageOn12V] = M4Device.VoltageOn12V;
+        Record[(int)DataPoint.M4ATXVoltageOn3V] = M4Device.VoltageOn3V;
+        Record[(int)DataPoint.M4ATXVoltageOn5V] = M4Device.VoltageOn5V;
     }
 }
