@@ -13,6 +13,7 @@ class Program
         M4ATX.Init();
         Motherboard.Init();
         nVidiaGPU.Init();
+        SendInfo.Init();
 
         Log.WriteLine(
 "--------------------+-------------+---------------------------------------+-------------+-------------------------------+-------+---------------------------------" + Environment.NewLine +
@@ -115,6 +116,7 @@ class Program
             try
             {
                 FetchAndLogRecord(record);
+                SendInfo.Send(DataPoint.M4ATXVoltageIn.ToString() + ": " + ((float)record[(int)DataPoint.M4ATXVoltageIn]).ToString("0.0") + " V");
             }
             catch (Exception e)
             {
