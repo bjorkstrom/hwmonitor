@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -20,7 +21,8 @@ namespace hwmonitor
             try
             {
                 tcpClient = new TcpClient();
-                tcpClient.Connect("172.40.11.219", 8001);
+                string ipAddress = Dns.GetHostEntry(Dns.GetHostName()).AddressList[2].ToString();
+                tcpClient.Connect(ipAddress, 8001);
                 theSocket = tcpClient.Client;
             }
            catch(Exception e)
