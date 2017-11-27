@@ -64,6 +64,6 @@ class nVidiaGPU
             throw new Exception("nvmlDeviceGetPowerUsage() failed " + ret);
         }
 
-        Record[(int)DataPoint.GPUPower] = ((float)power)/1000; /* convert from miliwatts to watts */
+        Record[DataPoint.GPUPower] = ((float)power)/1000; /* convert from miliwatts to watts */
     }
 }

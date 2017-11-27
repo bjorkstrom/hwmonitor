@@ -40,21 +40,21 @@ class Program
 
             DateTime.UtcNow,
            
-            record[(int)DataPoint.M4ATXTemperature],
-            record[(int)DataPoint.CPUPackageTemperature],
-            record[(int)DataPoint.CPUCore0Temperature],
-            record[(int)DataPoint.CPUCore1Temperature],
-            record[(int)DataPoint.CPUCore2Temperature],
-            record[(int)DataPoint.CPUCore3Temperature],
-            record[(int)DataPoint.GPUCoreTemperature],
-            record[(int)DataPoint.CPUPackagePower],
-            record[(int)DataPoint.CPUCoresPower],
-            record[(int)DataPoint.CPUDRAMPower],
-            record[(int)DataPoint.GPUPower],
-            record[(int)DataPoint.M4ATXVoltageIn],
-            record[(int)DataPoint.M4ATXVoltageOn12V],
-            record[(int)DataPoint.M4ATXVoltageOn3V],
-            record[(int)DataPoint.M4ATXVoltageOn5V]
+            record[DataPoint.M4ATXTemperature],
+            record[DataPoint.CPUPackageTemperature],
+            record[DataPoint.CPUCore0Temperature],
+            record[DataPoint.CPUCore1Temperature],
+            record[DataPoint.CPUCore2Temperature],
+            record[DataPoint.CPUCore3Temperature],
+            record[DataPoint.GPUCoreTemperature],
+            record[DataPoint.CPUPackagePower],
+            record[DataPoint.CPUCoresPower],
+            record[DataPoint.CPUDRAMPower],
+            record[DataPoint.GPUPower],
+            record[DataPoint.M4ATXVoltageIn],
+            record[DataPoint.M4ATXVoltageOn12V],
+            record[DataPoint.M4ATXVoltageOn3V],
+            record[DataPoint.M4ATXVoltageOn5V]
             );
       
         
@@ -62,7 +62,7 @@ class Program
 
         if (GlobalValues.NumtimesCheckedVolt != GlobalValues.numtimesForAverageVolt)
         {
-            GlobalValues.Voltages[GlobalValues.NumtimesCheckedVolt] = (float)record[(int)DataPoint.M4ATXVoltageIn];
+            GlobalValues.Voltages[GlobalValues.NumtimesCheckedVolt] = (float)record[DataPoint.M4ATXVoltageIn];
             GlobalValues.NumtimesCheckedVolt++;
         }
         else

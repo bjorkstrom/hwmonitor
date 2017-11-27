@@ -152,19 +152,19 @@ public class M4ATX
         {
             /* error, no M4ATX values this update cycle */
 
-            Record[(int)DataPoint.M4ATXTemperature] = null;
-            Record[(int)DataPoint.M4ATXVoltageIn] = null;
-            Record[(int)DataPoint.M4ATXVoltageOn12V] = null;
-            Record[(int)DataPoint.M4ATXVoltageOn3V] = null;
-            Record[(int)DataPoint.M4ATXVoltageOn5V] = null;
+            Record[DataPoint.M4ATXTemperature] = null;
+            Record[DataPoint.M4ATXVoltageIn] = null;
+            Record[DataPoint.M4ATXVoltageOn12V] = null;
+            Record[DataPoint.M4ATXVoltageOn3V] = null;
+            Record[DataPoint.M4ATXVoltageOn5V] = null;
 
             return;
         }
 
-        Record[(int)DataPoint.M4ATXTemperature] = M4Device.Temperature;
-        Record[(int)DataPoint.M4ATXVoltageIn] = M4Device.VoltageIn;
-        Record[(int)DataPoint.M4ATXVoltageOn12V] = M4Device.VoltageOn12V;
-        Record[(int)DataPoint.M4ATXVoltageOn3V] = M4Device.VoltageOn3V;
-        Record[(int)DataPoint.M4ATXVoltageOn5V] = M4Device.VoltageOn5V;
+        Record[DataPoint.M4ATXTemperature] = M4Device.Temperature;
+        Record[DataPoint.M4ATXVoltageIn] = M4Device.VoltageIn;
+        Record[DataPoint.M4ATXVoltageOn12V] = M4Device.VoltageOn12V;
+        Record[DataPoint.M4ATXVoltageOn3V] = M4Device.VoltageOn3V;
+        Record[DataPoint.M4ATXVoltageOn5V] = M4Device.VoltageOn5V;
     }
 }

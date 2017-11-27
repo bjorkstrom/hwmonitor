@@ -41,7 +41,7 @@ class Motherboard
                     /* we are not interested in this sensor */
                     continue;
                 }
-                Record[(int)IDMap[sensor.Identifier]] = sensor.Value;
+                Record[IDMap[sensor.Identifier]] = sensor.Value;
             }
         }
     }

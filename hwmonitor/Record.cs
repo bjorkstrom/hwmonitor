@@ -25,11 +25,10 @@ public enum DataPoint
 public class Record
 {
     object[] vals = new object[Enum.GetNames(typeof(DataPoint)).Length];
-    public object this[int index] 
-        {
-        get { return vals[index]; }
-        set { vals[index] = value;
-        }
+    public object this[DataPoint index]
+    {
+        get { return vals[(int)index]; }
+        set { vals[(int)index] = value; }
     }
 
     public String ToJson()
