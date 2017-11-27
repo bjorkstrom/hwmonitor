@@ -1,9 +1,5 @@
 using System;
-using System.Diagnostics;
-using System.Collections.Generic;
 using System.Threading;
-using System.Linq;
-using hwmonitor;
 
 class Program
 {
@@ -59,27 +55,6 @@ class Program
       
         
         Log.WriteLine(line);
-
-        if (GlobalValues.NumtimesCheckedVolt != GlobalValues.numtimesForAverageVolt)
-        {
-            GlobalValues.Voltages[GlobalValues.NumtimesCheckedVolt] = (float)record[DataPoint.M4ATXVoltageIn];
-            GlobalValues.NumtimesCheckedVolt++;
-        }
-        else
-        {
-            GlobalValues.AverageVolt = GlobalValues.Voltages.Sum() / GlobalValues.numtimesForAverageVolt;
-
-            if (GlobalValues.AverageVolt < GlobalValues.minVoltage)
-                try
-                {
-                    Process.Start("shutdown", "-s -t 30");
-                }
-                catch (Exception e)
-                {
-                    Log.Exception(e);
-                }
-            GlobalValues.NumtimesCheckedVolt = 0;
-        }
     }
 
     static void Main(string[] args)
@@ -93,6 +68,7 @@ class Program
             try
             {
                 FetchAndLogRecord(record);
+                Battery.CheckLevel((float)record[DataPoint.M4ATXVoltageIn]);
             }
             catch (Exception e)
             {
