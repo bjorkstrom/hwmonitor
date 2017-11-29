@@ -1,3 +1,6 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
@@ -7,10 +10,7 @@ namespace hwmonitor
     {
         static float minVoltage = 10.9F;
         static int numtimesForAverageVolt = 3;
-        static int NumtimesCheckedVolt { get; set; }
-
-        static float[] voltages = new float[numtimesForAverageVolt];
-        static float[] Voltages { get { return voltages; } }
+        static Queue<float> voltages = new Queue<float>();
 
         ///
         /// Log that we are shutting down and issue shutdown command
@@ -26,19 +26,16 @@ namespace hwmonitor
 
         public static void CheckLevel(float voltageIn)
         {
-            if (NumtimesCheckedVolt != numtimesForAverageVolt)
-            {
-                Voltages[NumtimesCheckedVolt] = voltageIn;
-                NumtimesCheckedVolt++;
-                return;
-            }
+            voltages.Enqueue(voltageIn);
+            if (voltages.Count > numtimesForAverageVolt)
+                voltages.Dequeue();
 
-            var AverageVolt = Voltages.Sum() / numtimesForAverageVolt;
+            var AverageVolt = voltages.Sum() / voltages.Count;
+
             if (AverageVolt < minVoltage)
             {
                 Shutdown(voltageIn);
             }
-            NumtimesCheckedVolt = 0;
         }
     }
 }
