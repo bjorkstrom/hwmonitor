@@ -31,6 +31,7 @@ class M4ATXDevice
     {
         /* Iterate over USB devices until we find the M4ATX device */
         UsbRegDeviceList allDevices = UsbDevice.AllLibUsbDevices;
+        
         foreach (UsbRegistry usbRegistry in allDevices)
         {
             if (usbRegistry.Vid == VENDOR_ID & usbRegistry.Pid == PRODUCT_ID)

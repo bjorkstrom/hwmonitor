@@ -8,7 +8,8 @@ namespace hwmonitor
 {
     public static class Battery
     {
-        static float minVoltage = 10.9F;
+        static float minVoltage = 10.9F;  
+        //static float minVoltage = 11.2F;   //Line above should be used.  This line is for testing purposes.
         static int numtimesForAverageVolt = 3;
         static Queue<float> voltages = new Queue<float>();
 
@@ -21,6 +22,7 @@ namespace hwmonitor
                 "Battery voltage {0} below minimal threshold {1}, " +
                 "issuing a shutdown command", voltageIn, minVoltage);
             Log.WriteLine(msg);
+            SendInfo.Send("Battery too low");
             Process.Start("shutdown", "-s -t 30");
         }
 

@@ -10,7 +10,10 @@ class Program
         M4ATX.Init();
         Motherboard.Init();
         nVidiaGPU.Init();
+        SendInfo.Init();
 
+        //Console.SetWindowSize(Console.WindowWidth + 50, Console.WindowHeight / 2);  //used to make testing easier, comment out
+        
         Log.WriteLine(
 "--------------------+-------------+---------------------------------------+-------------+-------------------------------+-------+---------------------------------" + Environment.NewLine +
 "     Timestamp      |  M4ATX PSU  |           CPU Temperature             |     GPU     |           CPU Power           |  GPU  |           M4ATX PSU Voltage         " + Environment.NewLine +
@@ -69,7 +72,8 @@ class Program
             try
             {
                 FetchAndLogRecord(record);
-                Battery.CheckLevel((float)record[DataPoint.M4ATXVoltageIn]);
+                Battery.CheckLevel((float)record[DataPoint.M4ATXVoltageIn]);  
+                SendInfo.Send(DataPoint.M4ATXVoltageIn.ToString() + ": " + ((float)record[DataPoint.M4ATXVoltageIn]).ToString("0.0") + " V");
             }
             catch (Exception e)
             {
